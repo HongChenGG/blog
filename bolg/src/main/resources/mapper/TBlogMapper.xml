@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ishy.blog.mapper.TBlogMapper">
+  <resultMap id="BaseResultMap" type="com.ishy.blog.po.TBlog">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="title" jdbcType="CHAR" property="title" />
+    <result column="content" jdbcType="CHAR" property="content" />
+    <result column="description" jdbcType="CHAR" property="description" />
+    <result column="firstPicture" jdbcType="CHAR" property="firstpicture" />
+    <result column="flag" jdbcType="CHAR" property="flag" />
+    <result column="views" jdbcType="INTEGER" property="views" />
+    <result column="appreciation" jdbcType="BOOLEAN" property="appreciation" />
+    <result column="shareStatement" jdbcType="BOOLEAN" property="sharestatement" />
+    <result column="commentabled" jdbcType="BOOLEAN" property="commentabled" />
+    <result column="published" jdbcType="BOOLEAN" property="published" />
+    <result column="recommend" jdbcType="BOOLEAN" property="recommend" />
+    <result column="createTime" property="createtime" />
+    <result column="updateTime"  property="updatetime" />
+    <collection property="type" ofType="com.ishy.blog.po.TType" columnPrefix="t_">
+      <id column="id"  property="id" />
+      <result column="name" property="name" />
+    </collection>
+    <collection property="tags" ofType="com.ishy.blog.po.TTag" columnPrefix="a_">
+      <id column="id"  property="id" />
+      <result column="name" property="name" />
+    </collection>
+    <collection property="user" ofType="com.ishy.blog.po.TUser" columnPrefix="u_">
+      <id column="id"  property="id" />
+      <result column="nickname" property="nickname" />
+      <result column="avatar" property="avatar" />
+    </collection>
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, title, content, firstPicture, flag, views, appreciation, shareStatement, commentabled, 
+    published, recommend, createTime, updateTime, typeid, userid,description
+  </sql>
+  <sql id="where_sql">
+    <where>
+      <if test="titlekey!=null">
+        title like concat('%',#{titlekey},'%')
+      </if>
+
+      <if test="isRecommend!=null">
+        and  (recommend=#{isRecommend})
+      </if>
+
+      <if test="typeId!=null">
+        and (t.id=#{typeId})
+      </if>
+    </where>
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from t_bolg
+    where id = #{id}
+  </select>
+  <select id="selectAll" parameterType="com.ishy.blog.query.blogQuery" resultMap="BaseResultMap" >
+    SELECT b.id,b.title,b.content,b.firstPicture,b.flag,b.description,b.views,b.appreciation,b.shareStatement,b.commentabled,b.published,b.recommend,b.createTime,b.updateTime,t.id AS t_id,t.name AS t_name
+    FROM t_bolg b LEFT JOIN t_type t ON (b.typeid=t.id)
+    <include refid="where_sql"/>
+  </select>
+  <select id="selectAlll" resultMap="BaseResultMap">
+      SELECT b.id,b.title,b.description,b.content,b.firstPicture,b.flag,b.views,b.appreciation,b.shareStatement,b.commentabled,b.published,b.recommend,b.createTime,b.updateTime,t.id AS t_id,t.name AS t_name
+    ,u.nickname AS u_nickname,u.avatar AS u_avatar FROM t_bolg b LEFT JOIN t_type t ON (b.typeid=t.id) LEFT JOIN t_user u ON (b.userid=u.id)
+  </select>
+  <select id="selectBytitle" resultType="com.ishy.blog.po.TBlog">
+    select * from t_bolg where title=#{title}
+  </select>
+  <select id="selectOne" resultMap="BaseResultMap">
+         SELECT b.id,b.title,b.description,b.content,b.firstPicture,b.flag,b.views,b.appreciation,b.shareStatement,b.commentabled,b.published,b.recommend,b.createTime,b.updateTime,t.id AS t_id,t.name AS t_name
+    ,u.nickname AS u_nickname,u.avatar AS u_avatar FROM t_bolg b LEFT JOIN t_type t ON (b.typeid=t.id) LEFT JOIN t_user u ON (b.userid=u.id) where b.id=#{id}
+  </select>
+  <select id="selectTags" resultType="java.lang.Integer">
+    select t_id from t_bolg_tag where b_id = #{id}
+  </select>
+  <select id="getFirstPageBlog" resultType="com.ishy.blog.query.FirstPageBlog">
+     SELECT b.id,b.title,b.firstpicture, b.views, b.comment_count,b.updatetime,b.description,
+        t.name ,
+        u.nickname, u.avatar
+        FROM blog.t_bolg b, blog.t_type t,blog.t_user u
+        WHERE b.typeid = t.id AND  u.id = b.userid ORDER BY b.updatetime DESC
+  </select>
+  <select id="selectAllAndRecommend" resultType="com.ishy.blog.po.TBlog">
+    select * from t_bolg where recommend =true
+  </select>
+  <select id="selectOneLimit" resultMap="BaseResultMap">
+     SELECT b.id,b.title,b.description,b.content,b.firstPicture,b.flag,b.views,b.appreciation,b.shareStatement,b.commentabled,b.published,b.recommend,b.createTime,b.updateTime,t.id AS t_id,t.name AS t_name
+    ,u.nickname AS u_nickname,u.avatar AS u_avatar FROM t_bolg b LEFT JOIN t_type t ON (b.typeid=t.id)
+     LEFT JOIN t_user u ON (b.userid=u.id) WHERE b.title LIKE concat('%',#{query},'%') OR b.content LIKE concat('%',#{query},'%')
+  </select>
+  <select id="selectTagOne" resultType="com.ishy.blog.po.TTag">
+    select * from t_tag where id in(select t_id from t_bolg_tag where b_id = #{id})
+  </select>
+  <select id="getBlogsByTypes" resultMap="BaseResultMap">
+            SELECT b.id,b.title,b.description,b.content,b.firstPicture,b.flag,b.views,b.appreciation,b.shareStatement,b.commentabled,b.published,b.recommend,b.createTime,b.updateTime,t.id AS t_id,t.name AS t_name
+    ,u.nickname AS u_nickname,u.avatar AS u_avatar FROM t_bolg b LEFT JOIN t_type t ON (b.typeid=t.id) LEFT JOIN t_user u ON (b.userid=u.id) WHERE typeid=#{id}
+  </select>
+  <select id="getBlogsByTags" resultMap="BaseResultMap">
+                   SELECT b.id ,b.title ,b.content,b.firstPicture,b.flag  ,b.views ,b.appreciation,b.shareStatement,b.commentabled
+    ,b.published ,b.recommend,b.createTime ,b.updateTime ,b.description ,a.id AS a_id,a.name AS a_name,u.id AS u_id,u.nickname AS u_nickname,u.avatar AS u_avatar,t.id AS t_id,t.name AS t_name
+    FROM t_bolg b LEFT JOIN t_bolg_tag bt ON b.id = bt.b_id LEFT JOIN t_tag a ON a.id = bt.t_id LEFT JOIN t_user u ON b.userid=u.id LEFT JOIN t_type t ON b.typeid=t.id  WHERE a.id=#{id}
+  </select>
+  <select id="findGroudYear" resultType="java.lang.String">
+        SELECT DATE_FORMAT(updateTime,'%Y年%m月') AS years FROM t_bolg GROUP BY years ORDER BY years DESC
+  </select>
+  <select id="selectByYear" resultType="com.ishy.blog.po.TBlog">
+            SELECT * FROM t_bolg b WHERE DATE_FORMAT(b.updateTime,'%Y年%m月') = #{year} ORDER BY updateTime DESC
+  </select>
+  <select id="countBlog" resultType="java.lang.Long">
+    select count(*) from t_bolg
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from t_bolg
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <delete id="deleteBlogTags">
+    delete from t_bolg_tag where b_id =#{id}
+  </delete>
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.ishy.blog.po.TBlog" useGeneratedKeys="true">
+    insert into t_bolg (title, content, firstPicture, 
+      flag, views, appreciation, 
+      shareStatement, commentabled, published, 
+      recommend, createTime, updateTime, 
+      typeid, userid,description)
+    values (#{title,jdbcType=CHAR}, #{content,jdbcType=CHAR}, #{firstpicture,jdbcType=CHAR}, 
+      #{flag,jdbcType=CHAR}, #{views,jdbcType=INTEGER}, #{appreciation,jdbcType=BOOLEAN}, 
+      #{sharestatement,jdbcType=BOOLEAN}, #{commentabled,jdbcType=BOOLEAN}, #{published,jdbcType=BOOLEAN}, 
+      #{recommend,jdbcType=BOOLEAN}, #{createtime,jdbcType=TIMESTAMP}, #{updatetime,jdbcType=TIMESTAMP}, 
+      #{type.id}, #{user.id},#{description,jdbcType=CHAR})
+  </insert>
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.ishy.blog.po.TBlog" useGeneratedKeys="true">
+    insert into t_bolg
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="title != null">
+        title,
+      </if>
+      <if test="content != null">
+        content,
+      </if>
+      <if test="firstpicture != null">
+        firstPicture,
+      </if>
+      <if test="flag != null">
+        flag,
+      </if>
+      <if test="views != null">
+        views,
+      </if>
+      <if test="appreciation != null">
+        appreciation,
+      </if>
+      <if test="sharestatement != null">
+        shareStatement,
+      </if>
+      <if test="commentabled != null">
+        commentabled,
+      </if>
+      <if test="published != null">
+        published,
+      </if>
+      <if test="recommend != null">
+        recommend,
+      </if>
+      <if test="createtime != null">
+        createTime,
+      </if>
+      <if test="updatetime != null">
+        updateTime,
+      </if>
+      <if test="typeid != null">
+        typeid,
+      </if>
+      <if test="userid != null">
+        userid,
+      </if>
+      <if test="descriptionbe != null">
+        description,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="title != null">
+        #{title,jdbcType=CHAR},
+      </if>
+      <if test="content != null">
+        #{content,jdbcType=CHAR},
+      </if>
+      <if test="firstpicture != null">
+        #{firstpicture,jdbcType=CHAR},
+      </if>
+      <if test="flag != null">
+        #{flag,jdbcType=CHAR},
+      </if>
+      <if test="views != null">
+        #{views,jdbcType=INTEGER},
+      </if>
+      <if test="appreciation != null">
+        #{appreciation,jdbcType=BOOLEAN},
+      </if>
+      <if test="sharestatement != null">
+        #{sharestatement,jdbcType=BOOLEAN},
+      </if>
+      <if test="commentabled != null">
+        #{commentabled,jdbcType=BOOLEAN},
+      </if>
+      <if test="published != null">
+        #{published,jdbcType=BOOLEAN},
+      </if>
+      <if test="recommend != null">
+        #{recommend,jdbcType=BOOLEAN},
+      </if>
+      <if test="createtime != null">
+        #{createtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatetime != null">
+        #{updatetime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="typeid != null">
+        #{typeid,jdbcType=INTEGER},
+      </if>
+      <if test="userid != null">
+        #{userid,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <insert id="insertBolgTag">
+    INSERT INTO t_bolg_tag(b_id,t_id) VALUES
+    <foreach collection="tagids"  separator="," item="tagid">
+      (#{id},#{tagid})
+    </foreach>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.ishy.blog.po.TBlog">
+    update t_bolg
+    <set>
+      <if test="title != null">
+        title = #{title,jdbcType=CHAR},
+      </if>
+      <if test="content != null">
+        content = #{content,jdbcType=CHAR},
+      </if>
+      <if test="firstpicture != null">
+        firstPicture = #{firstpicture,jdbcType=CHAR},
+      </if>
+      <if test="flag != null">
+        flag = #{flag,jdbcType=CHAR},
+      </if>
+      <if test="views != null">
+        views = #{views,jdbcType=INTEGER},
+      </if>
+      <if test="appreciation != null">
+        appreciation = #{appreciation,jdbcType=BOOLEAN},
+      </if>
+      <if test="sharestatement != null">
+        shareStatement = #{sharestatement,jdbcType=BOOLEAN},
+      </if>
+      <if test="commentabled != null">
+        commentabled = #{commentabled,jdbcType=BOOLEAN},
+      </if>
+      <if test="published != null">
+        published = #{published,jdbcType=BOOLEAN},
+      </if>
+      <if test="recommend != null">
+        recommend = #{recommend,jdbcType=BOOLEAN},
+      </if>
+      <if test="createtime != null">
+        createTime = #{createtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatetime != null">
+        updateTime = #{updatetime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="typeid != null">
+        typeid = #{typeid,jdbcType=INTEGER},
+      </if>
+      <if test="userid != null">
+        userid = #{userid,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.ishy.blog.po.TBlog">
+    update t_bolg
+    set title = #{title,jdbcType=CHAR},
+      content = #{content,jdbcType=CHAR},
+      firstPicture = #{firstpicture,jdbcType=CHAR},
+      flag = #{flag,jdbcType=CHAR},
+      views = #{views,jdbcType=INTEGER},
+      appreciation = #{appreciation,jdbcType=BOOLEAN},
+      shareStatement = #{sharestatement,jdbcType=BOOLEAN},
+      commentabled = #{commentabled,jdbcType=BOOLEAN},
+      published = #{published,jdbcType=BOOLEAN},
+      recommend = #{recommend,jdbcType=BOOLEAN},
+      createTime = #{createtime,jdbcType=TIMESTAMP},
+      updateTime = #{updatetime,jdbcType=TIMESTAMP},
+      typeid = #{type.id},
+      userid = #{user.id},
+      description=#{description}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateViews">
+    update t_bolg b set views = b.views+1 where id=#{id}
+  </update>
+</mapper>
