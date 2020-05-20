@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ishy.blog.mapper.TTagMapper">
+  <resultMap id="BaseResultMap" type="com.ishy.blog.po.TTag">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <collection property="blogs" ofType="com.ishy.blog.po.TBlog" columnPrefix="b_">
+      <id column="id"  property="id" />
+      <result column="content" jdbcType="CHAR" property="content" />
+      <result column="title" property="title"/>
+      <result column="description" jdbcType="CHAR" property="description" />
+      <result column="firstPicture" jdbcType="CHAR" property="firstpicture" />
+      <result column="flag" jdbcType="CHAR" property="flag" />
+      <result column="views" jdbcType="INTEGER" property="views" />
+      <result column="appreciation" jdbcType="BOOLEAN" property="appreciation" />
+      <result column="shareStatement" jdbcType="BOOLEAN" property="sharestatement" />
+      <result column="commentabled" jdbcType="BOOLEAN" property="commentabled" />
+      <result column="published" jdbcType="BOOLEAN" property="published" />
+      <result column="recommend" jdbcType="BOOLEAN" property="recommend" />
+      <result column="createTime" property="createtime" />
+      <result column="updateTime"  property="updatetime" />
+    </collection>
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, `name`
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from t_tag
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <select id="selectAll" resultType="com.ishy.blog.po.TTag">
+    select * from t_tag
+  </select>
+  <select id="selectByName" resultType="com.ishy.blog.po.TTag">
+    select * from t_tag where name=#{name}
+  </select>
+    <select id="getTagAndBolg" resultMap="BaseResultMap">
+    SELECT t.id AS id,t.name,b.id AS b_id,b.title AS b_title,b.content AS b_content,b.firstPicture AS firstpicture,b.flag AS b_flag ,b.views AS b_views,b.appreciation AS b_appreciation,b.sharestatement AS b_shareStatement,b.commentabled AS b_commentabled
+    ,b.published AS b_published,b.recommend AS b_recommend,b.createTime AS b_createTime,b.updateTime AS b_updateTime,b.description AS b_description
+    FROM t_tag t LEFT JOIN t_bolg_tag bt ON t.id = bt.t_id LEFT JOIN t_bolg b ON b.id = bt.b_id
+    </select>
+    <select id="selectBolgTags" resultType="com.ishy.blog.po.TBlog">
+          SELECT * FROM t_bolg WHERE id IN (SELECT b_id FROM t_bolg_tag WHERE t_id = #{id})
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from t_tag
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.ishy.blog.po.TTag" useGeneratedKeys="true">
+    insert into t_tag (`name`)
+    values (#{name,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.ishy.blog.po.TTag" useGeneratedKeys="true">
+    insert into t_tag
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="name != null">
+        `name`,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="name != null">
+        #{name,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.ishy.blog.po.TTag">
+    update t_tag
+    <set>
+      <if test="name != null">
+        `name` = #{name,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.ishy.blog.po.TTag">
+    update t_tag
+    set `name` = #{name,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>
